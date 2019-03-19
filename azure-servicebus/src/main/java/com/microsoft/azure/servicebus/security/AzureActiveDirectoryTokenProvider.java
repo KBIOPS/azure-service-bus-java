@@ -4,9 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.microsoft.aad.adal4j.AsymmetricKeyCredential;
 import com.microsoft.aad.adal4j.AuthenticationCallback;
 import com.microsoft.aad.adal4j.AuthenticationContext;
@@ -22,8 +19,6 @@ import com.microsoft.azure.servicebus.primitives.MessagingFactory;
  */
 public class AzureActiveDirectoryTokenProvider extends TokenProvider
 {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(AzureActiveDirectoryTokenProvider.class);
-    
     /**
      * Enumeration representing different authentication modes supported by this token provider.
      */
@@ -114,7 +109,6 @@ public class AzureActiveDirectoryTokenProvider extends TokenProvider
         
         @Override
         public void onFailure(Throwable authException) {
-            TRACE_LOGGER.error("Getting token from Azure Active Directory failed", authException);
             MessagingFactory.INTERNAL_THREAD_POOL.execute(() -> {this.tokenGeneratingFutue.completeExceptionally(authException);});
         }
 

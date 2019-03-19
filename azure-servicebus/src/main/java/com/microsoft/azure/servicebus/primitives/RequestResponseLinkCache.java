@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class RequestResponseLinkcache 
 {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(RequestResponseLinkcache.class);
     
     private Object lock = new Object();
     private final MessagingFactory underlyingFactory;    
@@ -51,7 +48,6 @@ class RequestResponseLinkcache
     
     public CompletableFuture<Void> freeAsync()
     {
-        TRACE_LOGGER.info("Closing all cached request-response links");
         ArrayList<CompletableFuture<Void>> closeFutures = new ArrayList<>();
         for(RequestResponseLinkWrapper wrapper : this.pathToRRLinkMap.values())
         {
@@ -97,14 +93,12 @@ class RequestResponseLinkcache
         {
             String requestResponseLinkPath = RequestResponseLink.getManagementNodeLinkPath(this.entityPath);
             String sasTokenAudienceURI = String.format(ClientConstants.SAS_TOKEN_AUDIENCE_FORMAT, this.underlyingFactory.getHostName(), this.entityPath);
-            TRACE_LOGGER.debug("Creating requestresponselink to '{}'", requestResponseLinkPath);
             RequestResponseLink.createAsync(this.underlyingFactory, StringUtil.getShortRandomString() + "-RequestResponse", requestResponseLinkPath, sasTokenAudienceURI, this.entityType).handleAsync((rrlink, ex) ->
             {
                 synchronized (this.lock)
                 {
                     if(ex == null)
                     {
-                        TRACE_LOGGER.info("Created requestresponselink to '{}'", requestResponseLinkPath);
                         if(this.isClosed)
                         {
                         	// Factory is likely closed. Close the link too
@@ -119,7 +113,6 @@ class RequestResponseLinkcache
                     else
                     {
                         Throwable cause = ExceptionUtil.extractAsyncCompletionCause(ex);
-                        TRACE_LOGGER.error("Creating requestresponselink to '{}' failed.", requestResponseLinkPath, cause);
                         RequestResponseLinkcache.this.removeWrapperFromCache(this.entityPath);
                         this.completeWaiters(cause);
                     }
@@ -172,7 +165,6 @@ class RequestResponseLinkcache
                 if(--this.referenceCount == 0)
                 {
                     RequestResponseLinkcache.this.removeWrapperFromCache(this.entityPath);
-                    TRACE_LOGGER.info("Closing requestresponselink to '{}'", this.requestResponseLink.getLinkPath());
                     this.requestResponseLink.closeAsync();
                 }
             }
@@ -180,7 +172,6 @@ class RequestResponseLinkcache
         
         public CompletableFuture<Void> forceCloseAsync()
         {
-            TRACE_LOGGER.info("Force closing requestresponselink to '{}'", this.requestResponseLink.getLinkPath());
             this.isClosed = true;
             if(this.waiters.size() > 0)
             {

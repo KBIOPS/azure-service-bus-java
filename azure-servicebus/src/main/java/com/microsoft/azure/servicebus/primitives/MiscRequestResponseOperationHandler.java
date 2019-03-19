@@ -5,14 +5,11 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.qpid.proton.amqp.DescribedType;
 import org.apache.qpid.proton.message.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.microsoft.azure.servicebus.rules.RuleDescription;
 
 public final class MiscRequestResponseOperationHandler extends ClientEntity
 {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(MiscRequestResponseOperationHandler.class);
     
 	private final Object requestResonseLinkCreationLock = new Object();
 	private final String entityPath;
@@ -49,7 +46,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 	
 	@Override
 	protected CompletableFuture<Void> onClose() {
-	    TRACE_LOGGER.trace("Closing MiscRequestResponseOperationHandler");
 	    this.closeInternals();
 	    return CompletableFuture.completedFuture(null);
 	}
@@ -102,7 +98,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 	
 	public CompletableFuture<Pair<String[], Integer>> getMessageSessionsAsync(Date lastUpdatedTime, int skip, int top, String lastSessionId)
 	{
-	    TRACE_LOGGER.debug("Getting message sessions from entity '{}' with lastupdatedtime '{}', skip '{}', top '{}', lastsessionid '{}'", this.entityPath, lastUpdatedTime, skip, top, lastSessionId);
 		return this.createRequestResponseLink().thenComposeAsync((v) -> {
 			HashMap requestBodyMap = new HashMap();
 			requestBodyMap.put(ClientConstants.REQUEST_RESPONSE_LAST_UPDATED_TIME, lastUpdatedTime);
@@ -123,19 +118,16 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 					Map responseBodyMap = RequestResponseUtils.getResponseBody(responseMessage);
 					int responseSkip = (int)responseBodyMap.get(ClientConstants.REQUEST_RESPONSE_SKIP);
 					String[] sessionIds = (String[])responseBodyMap.get(ClientConstants.REQUEST_RESPONSE_SESSIONIDS);
-					TRACE_LOGGER.debug("Received '{}' sessions from entity '{}'. Response skip '{}'", sessionIds.length, this.entityPath, responseSkip);
 					returningFuture.complete(new Pair<>(sessionIds, responseSkip));				
 				}
 				else if(statusCode == ClientConstants.REQUEST_RESPONSE_NOCONTENT_STATUS_CODE ||
 						(statusCode == ClientConstants.REQUEST_RESPONSE_NOTFOUND_STATUS_CODE && ClientConstants.SESSION_NOT_FOUND_ERROR.equals(RequestResponseUtils.getResponseErrorCondition(responseMessage))))
 				{
-				    TRACE_LOGGER.debug("Received no sessions from entity '{}'.", this.entityPath);
 					returningFuture.complete(new Pair<>(new String[0], 0));
 				}
 				else
 				{
 					// error response
-				    TRACE_LOGGER.debug("Receiving sessions from entity '{}' failed with status code '{}'", this.entityPath, statusCode);
 					returningFuture.completeExceptionally(RequestResponseUtils.genereateExceptionFromResponse(responseMessage));
 				}
 				return returningFuture;
@@ -145,7 +137,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 	
 	public CompletableFuture<Void> removeRuleAsync(String ruleName)
 	{
-	    TRACE_LOGGER.debug("Removing rule '{}' from entity '{}'", ruleName, this.entityPath);
 		return this.createRequestResponseLink().thenComposeAsync((v) -> {
 			HashMap requestBodyMap = new HashMap();
 			requestBodyMap.put(ClientConstants.REQUEST_RESPONSE_RULENAME, ruleName);
@@ -157,13 +148,11 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 				int statusCode = RequestResponseUtils.getResponseStatusCode(responseMessage);
 				if(statusCode == ClientConstants.REQUEST_RESPONSE_OK_STATUS_CODE)
 				{
-				    TRACE_LOGGER.debug("Removed rule '{}' from entity '{}'", ruleName, this.entityPath);
 					returningFuture.complete(null);
 				}
 				else
 				{
 					// error response
-				    TRACE_LOGGER.error("Removing rule '{}' from entity '{}' failed with status code '{}'", ruleName, this.entityPath, statusCode);
 					returningFuture.completeExceptionally(RequestResponseUtils.genereateExceptionFromResponse(responseMessage));
 				}
 				return returningFuture;
@@ -173,7 +162,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 	
 	public CompletableFuture<Void> addRuleAsync(RuleDescription ruleDescription)
 	{
-	    TRACE_LOGGER.debug("Adding rule '{}' to entity '{}'", ruleDescription.getName(), this.entityPath);
 		return this.createRequestResponseLink().thenComposeAsync((v) -> {
 			HashMap requestBodyMap = new HashMap();
 			requestBodyMap.put(ClientConstants.REQUEST_RESPONSE_RULENAME, ruleDescription.getName());
@@ -186,13 +174,11 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 				int statusCode = RequestResponseUtils.getResponseStatusCode(responseMessage);
 				if(statusCode == ClientConstants.REQUEST_RESPONSE_OK_STATUS_CODE)
 				{
-				    TRACE_LOGGER.debug("Added rule '{}' to entity '{}'", ruleDescription.getName(), this.entityPath);
 					returningFuture.complete(null);
 				}
 				else
 				{
 					// error response
-				    TRACE_LOGGER.error("Adding rule '{}' to entity '{}' failed with status code '{}'", ruleDescription.getName(), this.entityPath, statusCode);
 					returningFuture.completeExceptionally(RequestResponseUtils.genereateExceptionFromResponse(responseMessage));
 				}
 				return returningFuture;
@@ -202,7 +188,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 
 	public CompletableFuture<Collection<RuleDescription>> getRulesAsync(int skip, int top)
 	{
-		TRACE_LOGGER.debug("Fetching rules for entity '{}'", this.entityPath);
 		return this.createRequestResponseLink().thenComposeAsync((v) -> {
 			HashMap requestBodyMap = new HashMap();
 			requestBodyMap.put(ClientConstants.REQUEST_RESPONSE_SKIP, skip);
@@ -228,7 +213,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 						rules.add(RequestResponseUtils.decodeRuleDescriptionMap(ruleDescription));
 					}
 
-					TRACE_LOGGER.debug("Fetched {} rules from entity '{}'", rules.size(), this.entityPath);
 					returningFuture.complete(rules);
 				}
 				else if(statusCode == ClientConstants.REQUEST_RESPONSE_NOCONTENT_STATUS_CODE)
@@ -238,7 +222,6 @@ public final class MiscRequestResponseOperationHandler extends ClientEntity
 				else
 				{
 					// error response
-					TRACE_LOGGER.error("Fetching rules for entity '{}' failed with status code '{}'", this.entityPath, statusCode);
 					returningFuture.completeExceptionally(RequestResponseUtils.genereateExceptionFromResponse(responseMessage));
 				}
 

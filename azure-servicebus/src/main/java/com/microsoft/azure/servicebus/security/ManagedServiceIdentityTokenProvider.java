@@ -10,9 +10,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.Gson;
 import com.microsoft.azure.servicebus.primitives.MessagingFactory;
 
@@ -23,7 +20,6 @@ import com.microsoft.azure.servicebus.primitives.MessagingFactory;
  */
 public class ManagedServiceIdentityTokenProvider extends TokenProvider
 {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(ManagedServiceIdentityTokenProvider.class);
     
     private static final String STATIC_LOCAL_REST_MSI_ENDPOINT_URL = "http://localhost:50342/oauth2/token";
     private static final String APIVERSION = "api-version=2017-09-01";
@@ -47,7 +43,6 @@ public class ManagedServiceIdentityTokenProvider extends TokenProvider
             }
             catch(IOException ioe)
             {
-                TRACE_LOGGER.error("ManagedServiceIdentity token generation failed.", ioe);
                 tokenGeneratingFuture.completeExceptionally(ioe);
             }
         });

@@ -12,8 +12,6 @@ import java.util.UUID;
 import org.apache.qpid.proton.amqp.*;
 
 import com.microsoft.azure.servicebus.amqp.AmqpConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class ClientConstants
 {
@@ -21,7 +19,6 @@ public final class ClientConstants
 
     private ClientConstants() { }
 
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(ClientConstants.class);
 
 	public static final String FATAL_MARKER = "FATAL";
 	public final static String PRODUCT_NAME = "MSJavaClient";
@@ -192,7 +189,6 @@ public final class ClientConstants
             clientVersion = properties.getProperty("client.version");
         } catch (Exception e) {
             clientVersion = "NOTFOUND";
-            TRACE_LOGGER.error("Exception while retrieving client version. Exception: ", e.toString());
         }
 
         return clientVersion;

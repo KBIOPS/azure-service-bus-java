@@ -6,11 +6,8 @@ package com.microsoft.azure.servicebus.amqp;
 
 import org.apache.qpid.proton.amqp.transport.*;
 import org.apache.qpid.proton.engine.*;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 public class BaseLinkHandler extends BaseHandler {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(BaseLinkHandler.class);
 
     private final IAmqpLink underlyingEntity;
 
@@ -21,9 +18,6 @@ public class BaseLinkHandler extends BaseHandler {
     @Override
     public void onLinkLocalClose(Event event) {
         Link link = event.getLink();
-        if (link != null) {            
-            TRACE_LOGGER.debug("local link close. linkName:{}", link.getName());
-        }
 
         closeSession(link);
     }
@@ -33,7 +27,6 @@ public class BaseLinkHandler extends BaseHandler {
         final Link link = event.getLink();
         if(link != null)
         {
-            TRACE_LOGGER.debug("link remote close. linkName:{}", link.getName());
             if (link.getLocalState() != EndpointState.CLOSED) {
                 link.close();
             }
@@ -49,7 +42,6 @@ public class BaseLinkHandler extends BaseHandler {
         final Link link = event.getLink();
         if(link != null)
         {
-            TRACE_LOGGER.debug("link remote detach. linkName:{}", link.getName());
             if (link.getLocalState() != EndpointState.CLOSED) {
                 link.close();
             }
@@ -62,7 +54,6 @@ public class BaseLinkHandler extends BaseHandler {
 
     public void processOnClose(Link link, ErrorCondition condition) {
         if (condition != null) {
-            TRACE_LOGGER.debug("linkName:{}, ErrorCondition:{}, {}", link.getName(), condition.getCondition(), condition.getDescription());
         }
 
         this.underlyingEntity.onClose(condition);

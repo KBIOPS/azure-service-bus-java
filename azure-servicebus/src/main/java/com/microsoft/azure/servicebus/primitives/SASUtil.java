@@ -12,11 +12,6 @@ import java.util.Locale;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
-
 /**
  * 
  * @deprecated Use {@link com.microsoft.azure.servicebus.security.SharedAccessSignatureTokenProvider}
@@ -24,7 +19,6 @@ import org.slf4j.MarkerFactory;
  */
 @Deprecated
 public class SASUtil {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(SASUtil.class);
     private static final String SAS_FORMAT = "SharedAccessSignature sr=%s&sig=%s&se=%s&skn=%s";
     private static final String HMACAlgorithm = "HMACSHA256";
     private static final Base64.Encoder base64Encoder = Base64.getEncoder();
@@ -57,7 +51,6 @@ public class SASUtil {
             hmac.init(secretKey);
             byte[] signatureBytes = hmac.doFinal(StringUtil.convertStringToBytes(secretToSign));
             String signature = base64Encoder.encodeToString(signatureBytes);
-            TRACE_LOGGER.debug("Generated SAS token for resource: {} with sas key name : {}", resourceURI, sasKeyName);
             return String.format(Locale.US, SAS_FORMAT,
                     encodedResourceURI,
                     URLEncoder.encode(signature, utf8EncodingName),
@@ -66,8 +59,6 @@ public class SASUtil {
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             // These exceptions shouldn't occur.
             String errorMessage = "UTF-8 encoding or HMACSHA256 algorithm is missing in the java runtime.";
-            Marker fatalMarker = MarkerFactory.getMarker(ClientConstants.FATAL_MARKER);
-            TRACE_LOGGER.error(fatalMarker, errorMessage, e);
             throw new RuntimeException(errorMessage);
         }   
     }    

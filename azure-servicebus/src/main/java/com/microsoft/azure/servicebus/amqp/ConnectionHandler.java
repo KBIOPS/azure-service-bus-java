@@ -22,8 +22,6 @@ import org.apache.qpid.proton.engine.SslDomain;
 import org.apache.qpid.proton.engine.SslPeerDetails;
 import org.apache.qpid.proton.engine.Transport;
 import org.apache.qpid.proton.reactor.Handshaker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.microsoft.azure.servicebus.primitives.ClientConstants;
 import com.microsoft.azure.servicebus.primitives.StringUtil;
@@ -33,7 +31,6 @@ import com.microsoft.azure.servicebus.primitives.StringUtil;
 public final class ConnectionHandler extends BaseHandler
 {
 	private static final SslDomain.VerifyMode VERIFY_MODE;
-	private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(ConnectionHandler.class);
 	private final IAmqpConnection messagingFactory;
 
 	static
@@ -69,7 +66,6 @@ public final class ConnectionHandler extends BaseHandler
 	{
 		final Connection connection = event.getConnection();
 		final String hostName = event.getReactor().getConnectionAddress(connection);
-		TRACE_LOGGER.debug("onConnectionInit: hostname:{}", hostName);
 		connection.setHostname(hostName);
 		connection.setContainer(StringUtil.getShortRandomString());
 		
@@ -85,7 +81,6 @@ public final class ConnectionHandler extends BaseHandler
 	@Override
 	public void onConnectionBound(Event event)
 	{
-		TRACE_LOGGER.debug("onConnectionBound: hostname:{}", event.getConnection().getHostname());
 		Transport transport = event.getTransport();
 		
 		Sasl sasl = transport.sasl();
@@ -107,7 +102,6 @@ public final class ConnectionHandler extends BaseHandler
 				transport.ssl(domain, peerDetails);
 			} catch (NoSuchAlgorithmException e) {
 				// Should never happen
-				TRACE_LOGGER.error("Default SSL algorithm not found in JRE. Please check your JRE setup.", e);
 //				this.messagingFactory.onConnectionError(new ErrorCondition(AmqpErrorCode.InternalError, e.getMessage()));
 			}
 		}
@@ -121,7 +115,6 @@ public final class ConnectionHandler extends BaseHandler
 				transport.ssl(domain);
 			} catch (NoSuchAlgorithmException e) {
 				// Should never happen
-				TRACE_LOGGER.error("Default SSL algorithm not found in JRE. Please check your JRE setup.", e);
 //				this.messagingFactory.onConnectionError(new ErrorCondition(AmqpErrorCode.InternalError, e.getMessage()));
 			}
 			
@@ -139,11 +132,9 @@ public final class ConnectionHandler extends BaseHandler
 		ErrorCondition condition = event.getTransport().getCondition();
 		if (condition != null)
 		{			
-			TRACE_LOGGER.warn("Connection.onTransportError: hostname:{}, error:{}", event.getConnection().getHostname(), condition.getDescription());
 		}
 		else
 		{			
-			TRACE_LOGGER.warn("Connection.onTransportError: hostname:{}. error:{}", event.getConnection().getHostname(), "no description returned");
 		}
 
 		this.messagingFactory.onConnectionError(condition);
@@ -157,7 +148,6 @@ public final class ConnectionHandler extends BaseHandler
 	@Override
 	public void onConnectionRemoteOpen(Event event)
 	{		
-		TRACE_LOGGER.debug("Connection.onConnectionRemoteOpen: hostname:{}, remotecontainer:{}", event.getConnection().getHostname(), event.getConnection().getRemoteContainer());
 		this.messagingFactory.onConnectionOpen();
 	}
 
@@ -167,7 +157,6 @@ public final class ConnectionHandler extends BaseHandler
 		final Connection connection = event.getConnection();
 		final ErrorCondition error = connection.getRemoteCondition();
 		
-		TRACE_LOGGER.debug("onConnectionRemoteClose: hostname:{},errorCondition:{}", connection.getHostname(), error != null ? error.getCondition() + "," + error.getDescription() : null);
 		boolean shouldFreeConnection = connection.getLocalState() == EndpointState.CLOSED;		
 		this.messagingFactory.onConnectionError(error);
 		if(shouldFreeConnection)
@@ -178,13 +167,11 @@ public final class ConnectionHandler extends BaseHandler
 	
 	@Override
     public void onConnectionFinal(Event event) {
-	    TRACE_LOGGER.debug("onConnectionFinal: hostname:{}", event.getConnection().getHostname());
     }
 	
 	@Override
     public void onConnectionLocalClose(Event event) {
 	    Connection connection = event.getConnection();
-	    TRACE_LOGGER.debug("onConnectionLocalClose: hostname:{}", connection.getHostname());
 	    if(connection.getRemoteState() == EndpointState.CLOSED)
 	    {
 	        // Service closed it first. In some such cases transport is not unbound and causing a leak.

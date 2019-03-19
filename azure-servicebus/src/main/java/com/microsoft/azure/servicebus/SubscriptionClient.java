@@ -12,9 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.MessagingEntityType;
 import com.microsoft.azure.servicebus.primitives.MessagingFactory;
@@ -27,7 +24,6 @@ import com.microsoft.azure.servicebus.rules.RuleDescription;
 
 public final class SubscriptionClient extends InitializableEntity implements ISubscriptionClient
 {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(SubscriptionClient.class);
     private static final String SUBSCRIPTIONS_DELIMITER = "/subscriptions/";
 	private final ReceiveMode receiveMode;
 	private final String subscriptionPath;
@@ -50,10 +46,6 @@ public final class SubscriptionClient extends InitializableEntity implements ISu
 		this(receiveMode, amqpConnectionStringBuilder.getEntityPath());
 		CompletableFuture<MessagingFactory> factoryFuture = MessagingFactory.createFromConnectionStringBuilderAsync(amqpConnectionStringBuilder);
 		Utils.completeFuture(factoryFuture.thenComposeAsync((f) -> this.createPumpAndBrowserAsync(f), MessagingFactory.INTERNAL_THREAD_POOL));
-		if(TRACE_LOGGER.isInfoEnabled())
-        {
-            TRACE_LOGGER.info("Created subscription client to connection string '{}'", amqpConnectionStringBuilder.toLoggableString());
-        }
 	}
 	
 	public SubscriptionClient(String namespace, String subscriptionPath, ClientSettings clientSettings, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException
@@ -66,16 +58,12 @@ public final class SubscriptionClient extends InitializableEntity implements ISu
         this(receiveMode, subscriptionPath);
         CompletableFuture<MessagingFactory> factoryFuture = MessagingFactory.createFromNamespaceEndpointURIAsyc(namespaceEndpointURI, clientSettings);
         Utils.completeFuture(factoryFuture.thenComposeAsync((f) -> this.createPumpAndBrowserAsync(f), MessagingFactory.INTERNAL_THREAD_POOL));
-        if (TRACE_LOGGER.isInfoEnabled()) {
-            TRACE_LOGGER.info("Created subscription client to subscription '{}/{}'", namespaceEndpointURI.toString(), subscriptionPath);
-        }
     }
 	
 	SubscriptionClient(MessagingFactory factory, String subscriptionPath, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException
 	{
 		this(receiveMode, subscriptionPath);
 		Utils.completeFuture(this.createPumpAndBrowserAsync(factory));
-		TRACE_LOGGER.info("Created subscription client to subscripton '{}'", subscriptionPath);
 	}
 	
 	private CompletableFuture<Void> createPumpAndBrowserAsync(MessagingFactory factory)

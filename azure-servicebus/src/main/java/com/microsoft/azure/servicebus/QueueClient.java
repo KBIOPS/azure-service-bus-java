@@ -12,9 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ExceptionUtil;
 import com.microsoft.azure.servicebus.primitives.MessagingEntityType;
@@ -25,7 +22,6 @@ import com.microsoft.azure.servicebus.primitives.StringUtil;
 import com.microsoft.azure.servicebus.primitives.Util;
 
 public final class QueueClient extends InitializableEntity implements IQueueClient {
-    private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(QueueClient.class);
     private final ReceiveMode receiveMode;
     private final String queuePath;
     private final Object senderCreationLock;
@@ -48,9 +44,6 @@ public final class QueueClient extends InitializableEntity implements IQueueClie
         this(receiveMode, amqpConnectionStringBuilder.getEntityPath());
         CompletableFuture<MessagingFactory> factoryFuture = MessagingFactory.createFromConnectionStringBuilderAsync(amqpConnectionStringBuilder);
         Utils.completeFuture(factoryFuture.thenComposeAsync((f) -> this.createInternals(f, amqpConnectionStringBuilder.getEntityPath(), receiveMode), MessagingFactory.INTERNAL_THREAD_POOL));
-        if (TRACE_LOGGER.isInfoEnabled()) {
-            TRACE_LOGGER.info("Created queue client to connection string '{}'", amqpConnectionStringBuilder.toLoggableString());
-        }
     }
     
     public QueueClient(String namespace, String queuePath, ClientSettings clientSettings, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException
@@ -63,17 +56,11 @@ public final class QueueClient extends InitializableEntity implements IQueueClie
         this(receiveMode, queuePath);
         CompletableFuture<MessagingFactory> factoryFuture = MessagingFactory.createFromNamespaceEndpointURIAsyc(namespaceEndpointURI, clientSettings);
         Utils.completeFuture(factoryFuture.thenComposeAsync((f) -> this.createInternals(f, queuePath, receiveMode), MessagingFactory.INTERNAL_THREAD_POOL));
-        if (TRACE_LOGGER.isInfoEnabled()) {
-            TRACE_LOGGER.info("Created queue client to queue '{}/{}'", namespaceEndpointURI.toString(), queuePath);
-        }
     }
 
     QueueClient(MessagingFactory factory, String queuePath, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException {
         this(receiveMode, queuePath);
         Utils.completeFuture(this.createInternals(factory, queuePath, receiveMode));
-        if (TRACE_LOGGER.isInfoEnabled()) {
-            TRACE_LOGGER.info("Created queue client to queue '{}'", queuePath);
-        }
     }
 
     private CompletableFuture<Void> createInternals(MessagingFactory factory, String queuePath, ReceiveMode receiveMode) {
