@@ -1,3 +1,7 @@
+This fork allows using Azure Service Bus from Android devices. Right now it is in a pretty rough state but can be used from inside an android project. To build use `mvn clean install -Dmaven.test.skip=true`.
+
+The big difference between this and the original repo is removing the java specific libraries like sfl4j and adal4j, as well as code changes supporting those removals.
+
 <p align="center">
   <img src="service-bus.png" alt="Microsoft Azure Service Bus" width="100"/>
 </p>
